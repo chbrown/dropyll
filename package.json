@@ -1,0 +1,10 @@
+{
+  "name": "dropyll",
+  "version": "0.1.0",
+  "dependencies": {
+    "node-static": "x.x.x",
+    "dbox": "x.x.x",
+    "optimist": "x.x.x",
+    "socket.io": "x.x.x"
+  }
+}

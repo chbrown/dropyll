@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<title>Dropyll</title>
+<script src="/dropyll/static/jquery.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<link rel="Shortcut Icon" href="/dropyll/static/favicon.ico">
+<link rel="icon" href="/dropyll/static/favicon.ico" type="image/x-icon">
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  #controls {
+    height: 200px;
+  }
+  iframe {
+    border: 0;
+    border-top: 1px solid black;
+  }
+  table {
+    width: 100%;
+  }
+  td {
+    vertical-align: top;
+  }
+  #log {
+    height: 186px;
+    font-size: 80%;
+    overflow: scroll;
+    width: 100%;
+  }
+  button {
+    display: block;
+    margin: 5px;
+  }
+</style>
+
+<div id="controls">
+  <table cellspacing="0">
+    <tr>
+      <td style="width: 50px">
+        <button value="test">Test</button>
+        <button value="live">Live</button>
+      </td>
+      <td>
+        <pre id="log">
+        </pre>
+      </td>
+  </table>
+</div>
+<iframe style="width: 100%;">Page will be loaded here.</iframe>
+
+<script>
+var socket = io.connect('http://localhost');
+socket.on('log', function (data) {
+  console.log(data);
+  $("#log").append(data);
+});
+function refreshIframe(url) {
+  var $iframe = $('iframe'), iframe = $iframe[0];
+  // console.log("Refreshing to ", url);
+  var height = $(window).height();
+  $iframe.attr('src', url).on('load', function() {
+    console.log("$iframe -> 'load'", url);
+    $iframe.height((height - 211) + "px"); // 5px padding * 2, + 1 px border + 200 controls
+  });
+}
+socket.on('refresh', refreshIframe);
+
+$('button').click(function() {
+  var mode = $(this).val();
+  socket.emit('render', {mode: mode});
+});
+</script>
