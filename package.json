@@ -1,6 +1,12 @@
 {
   "name": "dropyll",
+  "description": "As-soon-as-possible streaming async Mustache templating",
   "version": "0.1.0",
+  "repository": { "type": "git", "url": "http://github.com/chbrown/dropyll.git" },
+  "homepage": "http://github.com/chbrown/dropyll",
+  "bin": { "dropyll": "./bin/dropyll" },
+  "author": "Christopher Brown <io@henrian.com>",
+  "main": "./bin/dropyll",
   "dependencies": {
     "node-static": "x.x.x",
     "dbox": "x.x.x",

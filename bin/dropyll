@@ -23,10 +23,10 @@ var oauth = {oauth_token: argv.oauthtoken, oauth_token_secret: argv.oauthsecret}
 var metadata_cache = {}; // maps paths to revision numbers
 function syncDirectory(dropbox_path, socket, callback) {
   dropbox.metadata(dropbox_path, oauth, function(status, reply) {
-    socket.emit('log', "metadata status: " + status);
+    socket.emit('log', 'dropbox.metadata: ' + status);
     var item = JSON.parse(reply);
-    if (!path.existsSync(local_path + item.path))
-      fs.mkdirSync(local_path + item.path);
+    if (!path.existsSync(options.local + item.path))
+      fs.mkdirSync(options.local + item.path);
     socket.emit('log', 'Got directory contents: ' +
       JSON.stringify(item.contents, null, 4) + '\n\n');
     syncFiles(item.contents, socket, callback);
@@ -47,9 +47,7 @@ function syncFiles(items, socket, callback) {
         if ((metadata_cache[item.path] || -1) < item.revision) {
           changed = true;
           dropbox.get(item.path, oauth, function(status, file_contents) {
-            console.log('dropbox.metadata', status, file_contents);
-            socket.emit('log', 'client.get: ' + item.path + ' (' + status + ') > ' +
-              options.local + item.path + '\n');
+            socket.emit('log', 'dropbox.get: ' + item.path + ' (' + status + ')\n');
             fs.writeFile(options.local + item.path, file_contents, next);
           });
           metadata_cache[item.path] = item.revision;
@@ -86,7 +84,7 @@ function jekyll(mode, socket, callback) {
   });
 }
 
-var static_server = new node_static.Server('./static');
+var static_server = new node_static.Server(__dirname + '/../static');
 var app = http.createServer(function(req, res) {
   console.log('Serving: ' + req.url);
   var m = req.url.match(/^\/dropyll\/static\/(.+)$/);
@@ -102,8 +100,9 @@ var app = http.createServer(function(req, res) {
 
 var io = socket_io.listen(app);
 io.sockets.on('connection', function (socket) {
-  console.log('Got socket', socket);
+  console.log('Got socket');
   socket.on('render', function (data) {
+    console.log('Socket says render');
     var mode = data.mode;
     console.log("Got render event on server-side");
     socket.emit('log', '\nStarting sync...\n\n');
