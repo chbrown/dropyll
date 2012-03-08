@@ -50,7 +50,7 @@
 <iframe style="width: 100%;">Page will be loaded here.</iframe>
 
 <script>
-var socket = io.connect('http://localhost');
+var socket = io.connect(window.location.origin, {port: 8080});
 socket.on('log', function (data) {
   console.log(data);
   $("#log").append(data);

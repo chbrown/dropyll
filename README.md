@@ -10,7 +10,7 @@ Run it:
 	  --appkey <your app key> \
 	  --appsecret <your app secret> \
 	  --oauthtoken <your dropbox account token> \
-	  --oauthsecret <your dropbox account secret
+	  --oauthsecret <your dropbox account secret>
 	  
 *All of those `<your whatever>` values will be un-quoted strings of hexadecimals.*
 	  
