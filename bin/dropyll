@@ -20,10 +20,9 @@ var options = {
 var dropbox = dbox.createClient({app_key: argv.appkey, app_secret: argv.appsecret, root: 'dropbox'});
 var oauth = {oauth_token: argv.oauthtoken, oauth_token_secret: argv.oauthsecret};
 
-var metadata_cache = {}; // maps paths to revision numbers
 function syncDirectory(dropbox_path, socket, callback) {
   dropbox.metadata(dropbox_path, oauth, function(status, reply) {
-    socket.emit('log', 'dropbox.metadata: ' + status);
+    socket.emit('log', 'dropbox.metadata: ' + status + '\n');
     var item = JSON.parse(reply);
     if (!path.existsSync(options.local + item.path))
       fs.mkdirSync(options.local + item.path);
@@ -44,17 +43,21 @@ function syncFiles(items, socket, callback) {
         syncDirectory(item.path, socket, next);
       }
       else {
-        if ((metadata_cache[item.path] || -1) < item.revision) {
-          changed = true;
-          dropbox.get(item.path, oauth, function(status, file_contents) {
-            socket.emit('log', 'dropbox.get: ' + item.path + ' (' + status + ')\n');
-            fs.writeFile(options.local + item.path, file_contents, next);
-          });
-          metadata_cache[item.path] = item.revision;
-        }
-        else {
-          next();
-        }
+        var full_path = options.local + item.path;
+        fs.stat(full_path, function(err, stats) {
+          // if the file is missing, err != null
+          if (err || stats.mtime < new Date(item.modified)) {
+            changed = true;
+            dropbox.get(item.path, oauth, function(status, file_contents) {
+              socket.emit('log', 'dropbox.get: ' + item.path + ' (' + status + ')\n');
+              fs.writeFile(full_path, file_contents, next);
+            });
+          }
+          else {
+            socket.emit('log', 'file is already latest version: ' + item.path + '\n');
+            next();
+          }
+        });
       }
     }
     else {
@@ -67,6 +70,7 @@ function jekyll(mode, socket, callback) {
   var local_fullpath = options.local + options.dropbox;
   fs.readdir(local_fullpath, function(err, files) {
     var live = mode === 'live';
+    socket.emit('log', 'running jekyll in directory: ' + local_fullpath + '\n');
     var jekyll = spawn('jekyll', [live ? '_live' : '_test'], {
       cwd: local_fullpath,
       env: process.env
@@ -110,7 +114,7 @@ io.sockets.on('connection', function (socket) {
       socket.emit('log', '\n\n*** Done ***\n\nSomething changed: ' + changed + '!\n');
       socket.emit('log', '\nStarting jekyll...\n\n');
       jekyll(mode, socket, function(err) {
-        socket.emit('log', '\nEnd!\n');
+        socket.emit('log', '\nEnd!\n\n');
         socket.emit('refresh', 'http://' + mode + '.' + options.tld);
       });
     });
