@@ -1,7 +1,7 @@
 {
   "name": "dropyll",
-  "description": "As-soon-as-possible streaming async Mustache templating",
-  "version": "0.1.1",
+  "description": "Use Dropbox to edit your Jekyll website (with staging area)",
+  "version": "0.1.2",
   "repository": { "type": "git", "url": "http://github.com/chbrown/dropyll.git" },
   "homepage": "http://github.com/chbrown/dropyll",
   "bin": { "dropyll": "./bin/dropyll" },
