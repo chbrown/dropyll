@@ -115,7 +115,8 @@ io.sockets.on('connection', function (socket) {
       socket.emit('log', '\nStarting jekyll...\n\n');
       jekyll(mode, socket, function(err) {
         socket.emit('log', '\nEnd!\n\n');
-        socket.emit('refresh', 'http://' + mode + '.' + options.tld);
+        var tail = '?t=' + (new Date()).getTime();
+        socket.emit('refresh', 'http://' + mode + '.' + options.tld + tail);
       });
     });
   });
