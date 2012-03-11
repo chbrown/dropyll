@@ -68,23 +68,23 @@ function syncFiles(items, socket, callback) {
 
 function jekyll(mode, socket, callback) {
   var local_fullpath = options.local + options.dropbox;
-  fs.readdir(local_fullpath, function(err, files) {
-    var live = mode === 'live';
-    socket.emit('log', 'running jekyll in directory: ' + local_fullpath + '\n');
-    var jekyll = spawn('jekyll', [live ? '_live' : '_test'], {
-      cwd: local_fullpath,
-      env: process.env
-    });
-    jekyll.stdout.on('data', function (data) {
-      socket.emit('log', 'jekyll >: ' + data + '\n');
-    });
-    jekyll.stderr.on('data', function (data) {
-      socket.emit('log', 'jekyll 2>: ' + data + '\n');
-    });
-    jekyll.on('exit', function (code) {
-      socket.emit('log', 'jekyll FINISHED! ' + code + '\n');
-      callback(null);
-    });
+  var live = mode === 'live';
+  socket.emit('log', 'running jekyll in directory: ' + local_fullpath + '\n');
+  var new_env = process.env;
+  new_env['LANG'] = 'en_US.utf8';
+  var jekyll_proc = spawn('jekyll', [live ? '_live' : '_test'], {
+    cwd: local_fullpath,
+    env: new_env
+  });
+  jekyll_proc.stdout.on('data', function (data) {
+    socket.emit('log', 'jekyll >: ' + data + '\n');
+  });
+  jekyll_proc.stderr.on('data', function (data) {
+    socket.emit('log', 'jekyll 2>: ' + data + '\n');
+  });
+  jekyll_proc.on('exit', function (code) {
+    socket.emit('log', 'jekyll FINISHED! ' + code + '\n');
+    callback(null);
   });
 }
 
