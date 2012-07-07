@@ -24,7 +24,7 @@ function syncDirectory(dropbox_path, socket, callback) {
   dropbox.metadata(dropbox_path, oauth, function(status, reply) {
     socket.emit('log', 'dropbox.metadata: ' + status + '\n');
     var item = JSON.parse(reply);
-    if (!path.existsSync(options.local + item.path))
+    if (!fs.existsSync(options.local + item.path))
       fs.mkdirSync(options.local + item.path);
     socket.emit('log', 'Got directory contents: ' +
       JSON.stringify(item.contents, null, 4) + '\n\n');
