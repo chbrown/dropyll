@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/chbrown/dropyll.png)](http://travis-ci.org/chbrown/dropyll)
 # Directions
 
 Run it:
