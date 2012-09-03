@@ -12,8 +12,8 @@ var fs = require('fs'),
   local = argv.local,
   dropbox = argv.dropbox,
   tld = argv.tld,
-  frame_html = fs.readFileSync('frame.html'),
-  favicon_ico = fs.readFileSync('favicon.ico'),
+  frame_html = fs.readFileSync(path.join(__dirname, 'frame.html')),
+  favicon_ico = fs.readFileSync(path.join(__dirname, 'favicon.ico')),
   env = process.env;
 
 env.LANG = 'en_US.UTF-8';
