@@ -11,9 +11,9 @@ Run it:
 	  --appsecret <your app secret> \
 	  --oauthtoken <your dropbox account token> \
 	  --oauthsecret <your dropbox account secret>
-	  
+
 *All of those `<your whatever>` values will be un-quoted strings of hexadecimals.*
-	  
+
 Setting up:
 
 	chown u+a nodedude /www/
@@ -29,7 +29,7 @@ Nginx config:
 	    root /www/blog-dropyll/_test;
 	  }
 	}
-	
+
 	server {
 	  listen 80;
 	  server_name *.blogginin1999.com;
@@ -41,3 +41,5 @@ Nginx config:
 	      proxy_pass http://127.0.0.1:8050;
 	  }
 	}
+
+node-dropbox has a slightly nicer interface, but is broken

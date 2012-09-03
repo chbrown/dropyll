@@ -1,16 +1,15 @@
 {
   "name": "dropyll",
   "description": "Use Dropbox to edit your Jekyll website (with staging area)",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "repository": { "type": "git", "url": "http://github.com/chbrown/dropyll.git" },
   "homepage": "http://github.com/chbrown/dropyll",
-  "bin": { "dropyll": "./bin/dropyll" },
+  "bin": { "dropyll": "./dropyll" },
   "author": "Christopher Brown <io@henrian.com>",
-  "main": "./bin/dropyll",
+  "main": "./dropyll",
   "dependencies": {
-    "node-static": "x.x.x",
-    "dbox": "x.x.x",
-    "optimist": "x.x.x",
-    "socket.io": "x.x.x"
+    "regex-router": "*",
+    "dbox": "*",
+    "optimist": "*"
   }
 }

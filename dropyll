@@ -1,0 +1,103 @@
+#!/usr/bin/env node
+var fs = require('fs'),
+  path = require('path'),
+  util = require('util'),
+  http = require('http'),
+  exec = require('child_process').exec,
+  dbox = require('dbox'),
+  R = new (require('regex-router'))(),
+  argv = require('optimist').argv,
+  host = argv.host || '127.0.0.1',
+  port = argv.port || 8051,
+  local = argv.local,
+  dropbox = argv.dropbox,
+  tld = argv.tld,
+  frame_html = fs.readFileSync('frame.html'),
+  favicon_ico = fs.readFileSync('favicon.ico'),
+  env = process.env;
+
+env.LANG = 'en_US.UTF-8';
+env.LC_ALL = 'en_US.UTF-8';
+Array.prototype.extend = function(l) { return this.push.apply(this, l); };
+
+// ('root' defaults to sandbox)
+var app = dbox.app({app_key: argv.appkey, app_secret: argv.appsecret, root: 'dropbox'});
+var client = app.client({oauth_token: argv.oauthtoken, oauth_token_secret: argv.oauthsecret});
+
+function syncDirectory(dropbox_path, callback) {
+  // callback signature: (logs)
+  //   logs is a list of strings
+  var logs = [];
+  client.metadata(dropbox_path, function(status, item) {
+    var local_path = local + item.path,
+      fileitems = item.contents;
+    logs.push('metadata: ' + status + ', ' + fileitems.length + ' items');
+    if (!fs.existsSync(local_path)) fs.mkdirSync(local_path);
+    // fileitems can be node objects representing filepaths or directories
+    (function next() {
+      var fileitem = fileitems.pop();
+      if (fileitem) {
+        if (fileitem.is_dir) {
+          syncDirectory(fileitem.path, function(err, sublogs) {
+            logs.extend(sublogs);
+            next();
+          });
+        }
+        else {
+          var local_filepath = path.join(local, fileitem.path);
+          fs.stat(local_filepath, function(err, stats) {
+            // if (err) console.error(err);
+            // if the file is missing, err != null
+            console.log('get: ' + fileitem.path);
+            logs.push('get: ' + fileitem.path);
+            if (err || stats.mtime < new Date(fileitem.modified)) {
+              client.get(fileitem.path, function(status, file_contents) {
+                fs.writeFile(local_filepath, file_contents, next);
+              });
+            }
+            else {
+              logs.push('file is already latest version: ' + fileitem.path);
+              next();
+            }
+          });
+        }
+      }
+      else {
+        callback(logs);
+      }
+    })();
+  });
+}
+
+R.default = function(m, req, res) {
+  res.string("text/html", frame_html);
+};
+R.get(/favicon/, function(m, req, res) {
+  res.string("image/x-icon", favicon_ico);
+});
+
+R.post(/(test|live)/, function(m, req, res) {
+  var url = 'http://' + m[1] + '.' + argv.tld + '?t=' + Date.now();
+  syncDirectory(dropbox, function(logs) {
+    console.log("Done syncing", logs.length);
+    logs.extend(['*** Done rendering ***']);
+    exec('jekyll _' + m[1], {cwd: path.join(local, dropbox), env: env}, function(err, stdout, stderr) {
+      logs.extend(["STDOUT: " + stdout, "STDERR: " + stderr]);
+      res.json({success: true, url: url, message: logs.join('\n')});
+    });
+  });
+});
+
+http.ServerResponse.prototype.string = function(content_type, body) {
+  this.writeHead(200, {"Content-Type": content_type});
+  this.write(body);
+  this.end();
+};
+http.ServerResponse.prototype.json = function(obj) {
+  this.string("application/json", JSON.stringify(obj));
+};
+var app = http.createServer(function(req, res) {
+  console.log('URL: ' + req.url);
+  R.route(req, res);
+}).listen(port, host);
+console.log('Dropyll server running at ' + host + ':' + port);
