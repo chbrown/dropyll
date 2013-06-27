@@ -6,6 +6,7 @@
   "homepage": "http://github.com/chbrown/dropyll",
   "bin": { "dropyll": "./dropyll" },
   "author": "Christopher Brown <io@henrian.com>",
+  "license": "MIT",
   "main": "./dropyll",
   "dependencies": {
     "regex-router": "*",
